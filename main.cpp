@@ -130,13 +130,13 @@ void ShowSidebar() {
 void ShowOptionPricing() {
     ImGui::Begin("Option Pricing");
     if (ImGui::Button("1. Calculate Call Option")) {
-        double dp = log(S/K) + (r-q + (pow(v,2))/2);
-        double dn = log(S/K) + (r-q - (pow(v,2))/2);
+        double dp = log(S/K) + t*(r-q + (pow(v,2))/2)/(v*sqrt(t));
+        double dn = dp - v*sqrt(t);
         C = N * ((S*exp(-q*t)*CumulativeNormalDistribution(dp)) - (K*exp(-r*t)*CumulativeNormalDistribution(dn)));
     }
     if (ImGui::Button("2. Calculate Put Option")) {
-        double dp = log(S/K) + (r-q + (pow(v,2))/2);
-        double dn = log(S/K) + (r-q - (pow(v,2))/2);
+        double dp = log(S/K) + t*(r-q + (pow(v,2))/2)/(v*sqrt(t));
+        double dn = dp - v*sqrt(t);
         P = N * ((-S*exp(-q*t)*CumulativeNormalDistribution(-dp)) + (K*exp(-r*t)*CumulativeNormalDistribution(-dn)));
     }
     ImGui::TextColored(ImVec4(0, 1, 0, 1), "Call Option Price: %f", C);
@@ -146,20 +146,60 @@ void ShowOptionPricing() {
 
 void ShowGreeksEvaluation() {
     ImGui::Begin("Greeks Evaluation");
-    if (ImGui::Button("1. Calculate Delta")) {
-        double dp = log(S/K) + (r-q + (pow(v,2))/2);
-        D = N * exp(-q*t) * CumulativeNormalDistribution(dp);
+
+    static bool isCallSelected = false;
+    static bool isPutSelected = false;
+
+    if (ImGui::Button("1. Call")) {
+        isCallSelected = true;
+        isPutSelected = false;
     }
-    if (ImGui::Button("2. Calculate Gamma")) {
-        double dp = log(S/K) + (r-q + (pow(v,2))/2);
-        G = N * exp(-q*t) * (p(dp) / (v * S * sqrt(t)));
+
+    if (ImGui::Button("2. Put")) {
+        isCallSelected = false;
+        isPutSelected = true;
     }
-    if (ImGui::Button("3. Calculate Vega")) {
-        double dp = log(S/K) + (r-q + (pow(v,2))/2);
-        VG = N * exp(-q*t) * sqrt(t) * p(dp);
+
+    if (isCallSelected || isPutSelected) {
+        if (isCallSelected) {
+            ImGui::Text("Call Options:");
+        }
+        if (isPutSelected) {
+            ImGui::Text("Put Options:");
+        }
+        
+        ImGui::Separator();
+
+        // Box for Delta, Gamma, and Vega
+        ImGui::BeginChild("Greeks Box", ImVec2(0, 300), true);
+        
+        if (ImGui::Button("Calculate Delta")) {
+            if (isCallSelected) {
+                // Call option Delta formula
+                double dp = (log(S/K) + t*(r-q + (pow(v,2))/2)) / (v * sqrt(t)); // Placeholder formula
+                D = exp(-q*t) * CumulativeNormalDistribution(dp);
+            } else if (isPutSelected) {
+                // Put option Delta formula
+                double dp = (log(S/K) + t*(r-q + (pow(v,2))/2)) / (v * sqrt(t)); // Placeholder formula
+                D = exp(-q*t) * (CumulativeNormalDistribution(dp) - 1);
+            }
+        }
+        ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Delta: %f", D);
+
+        if (ImGui::Button("Calculate Gamma")) {
+            double dp = (log(S/K) + t*(r-q + (pow(v,2))/2)) / (v * sqrt(t)); // Placeholder formula
+            G = exp(-q*t) * (p(dp) / (S * v * sqrt(t))); // Same formula for call and put options
+        }
+        ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Gamma: %f", G);
+
+        if (ImGui::Button("Calculate Vega")) {
+            double dp = (log(S/K) + t*(r-q + (pow(v,2))/2)) / (v * sqrt(t)); // Placeholder formula
+            VG = S * exp(-q*t) * sqrt(t) * p(dp); // Same formula for call and put options
+        }
+        ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Vega: %f", VG);
+
+        ImGui::EndChild();
     }
-    ImGui::TextColored(ImVec4(0.5, 0.8, 1, 1), "Delta: %f", D);
-    ImGui::TextColored(ImVec4(0, 0, 1, 1), "Gamma: %f", G);
-    ImGui::TextColored(ImVec4(0.5, 0, 1, 1), "Vega: %f", VG);
+
     ImGui::End();
 }
