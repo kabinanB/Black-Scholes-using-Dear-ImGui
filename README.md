@@ -6,7 +6,7 @@
 #### Include these files in the same project directory
 
 ### Note:
-#### This project was done before any advanced knowledge in Object Oriented Programming and other advanced techniques.
+#### This project is only intended to show DearImGui features but not Object Oriented Programming and other advanced C++ techniques.
 
 #### Output is this:
 ![Alt text](Option.png)
